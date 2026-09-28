@@ -1,0 +1,5 @@
+﻿ID,Piece,V,Dims,Class,Sym,Note
+18,"`(O,O,O)`",16,"(2,2,2,2)",True,1,REACTOR — fully symmetric
+30,"`(T,T,T)`",28,"(3,3,2,3)",Hyper,8,HYPERCRADLE
+34,"`(I,I,I)`",64,"(4,4,1,4)",Hyper,4,PLATE
+"0–2, 7, 14","`(L,L,.)` etc.",1–9,various,Thin,1–12,Legendary tier

@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NESTRIS Δ">
+    <meta name="theme-color" content="#050508">
+    <title>NESTRIS Δ — Transdimensional Engine & Interactive Academy</title>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --slate-panel: rgba(15, 23, 42, 0.88);
+            --slate-border: rgba(13, 148, 136, 0.35);
+            --teal-accent: #00ffff;
+            --teal-dim: #0d9488;
+            --amber-accent: #d97706;
+            --amber-bright: #fbbf24;
+            --white-text: #f8fafc;
+            --muted-text: #94a3b8;
+            --danger-color: #f43f5e;
+            --success-color: #22c55e;
+            --safe-top: env(safe-area-inset-top, 16px);
+            --safe-bottom: env(safe-area-inset-bottom, 16px);
+            --safe-left: env(safe-area-inset-left, 16px);
+            --safe-right: env(safe-area-inset-right, 16px);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Courier New', Courier, monospace, system-ui, -apple-system;
+            color: var(--white-text);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: max(16px, var(--safe-top)) max(16px, var(--safe-right)) max(16px, var(--safe-bottom)) max(16px, var(--safe-left));
+            z-index: 10;
+        }
+
+        .hud-panel {
+            background: var(--slate-panel);
+            border: 1px solid var(--slate-border);
+            padding: 12px 16px;
+            border-radius: 8px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+            pointer-events: auto;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            gap: 12px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 3px;
+            color: var(--teal-accent);
+            text-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+        }
+
+        header p {
+            margin: 2px 0 0 0;
+            font-size: 10px;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--white-text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-subtext {
+            font-size: 9px;
+            color: var(--amber-bright);
+            margin-top: 2px;
+        }
+
+        .hud-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: rgba(13, 148, 136, 0.18);
+            color: var(--teal-accent);
+            border: 1px solid var(--teal-dim);
+            padding: 7px 12px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .btn-action:hover, .btn-action:active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: var(--teal-accent);
+            box-shadow: 0 0 14px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-action.highlight {
+            background: rgba(217, 119, 6, 0.25);
+            color: var(--amber-bright);
+            border-color: var(--amber-bright);
+        }
+
+        .btn-action.highlight:hover, .btn-action.highlight:active {
+            background: rgba(217, 119, 6, 0.45);
+            box-shadow: 0 0 14px rgba(251, 191, 36, 0.6);
+        }
+
+        .controls-desktop {
+            align-self: flex-start;
+            font-size: 11px;
+            color: var(--muted-text);
+            line-height: 1.6;
+            max-width: 440px;
+        }
+
+        .controls-desktop strong {
+            color: var(--teal-accent);
+        }
+
+        kbd {
+            background: #1e293b;
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #475569;
+            color: #fff;
+            font-size: 10px;
+            font-family: inherit;
+        }
+
+        /* Banner Notifications */
+        #notification-banner {
+            position: absolute;
+            top: max(75px, calc(var(--safe-top) + 60px));
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 9px 20px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--amber-bright);
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.45);
+            border-radius: 6px;
+            color: var(--amber-bright);
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 100;
+            text-align: center;
+            max-width: 90vw;
+        }
+
+        #notification-banner.show {
+            opacity: 1;
+        }
+
+        /* Mobile Touch Deck (iPhone Layout) */
+        #mobile-touch-deck {
+            position: absolute;
+            bottom: max(14px, var(--safe-bottom));
+            left: max(14px, var(--safe-left));
+            right: max(14px, var(--safe-right));
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        .touch-cluster {
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Virtual D-Pad */
+        .dpad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 46px);
+            grid-template-rows: repeat(3, 46px);
+            gap: 5px;
+            background: rgba(15, 23, 42, 0.75);
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(13, 148, 136, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .touch-btn {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            touch-action: manipulation;
+            user-select: none;
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .touch-btn:active {
+            background: rgba(0, 255, 255, 0.4);
+            border-color: var(--teal-accent);
+            transform: scale(0.92);
+        }
+
+        .touch-btn.center-btn {
+            font-size: 10px;
+            color: var(--muted-text);
+            text-transform: uppercase;
+        }
+
+        /* Action Cluster (Rotation & Drop) */
+        .action-cluster {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+
+        .rot-row {
+            display: flex;
+            gap: 5px;
+            background: rgba(15, 23, 42, 0.75);
+            padding: 5px 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(13, 148, 136, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .touch-btn.rot {
+            width: 48px;
+            height: 44px;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            color: var(--teal-accent);
+        }
+
+        .touch-btn.rot span {
+            font-size: 8px;
+            color: var(--muted-text);
+        }
+
+        .touch-btn.hard-drop {
+            width: 154px;
+            height: 46px;
+            background: rgba(217, 119, 6, 0.3);
+            border: 1px solid var(--amber-bright);
+            color: var(--amber-bright);
+            font-size: 13px;
+            letter-spacing: 2px;
+            border-radius: 10px;
+            box-shadow: 0 0 16px rgba(251, 191, 36, 0.3);
+        }
+
+        .touch-btn.hard-drop:active {
+            background: rgba(217, 119, 6, 0.6);
+            transform: scale(0.95);
+        }
+
+        /* ========================================================= */
+        /* COLLAPSIBLE TUTORIAL OVERLAY & COMPACT HUD RIBBON         */
+        /* ========================================================= */
+        #tutorial-overlay {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.96);
+            border: 1px solid var(--teal-accent);
+            border-radius: 10px;
+            box-shadow: 0 0 35px rgba(0, 255, 255, 0.28);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            pointer-events: auto;
+            display: none;
+            flex-direction: column;
+            z-index: 50;
+            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Full / Expanded Modal State */
+        #tutorial-overlay.expanded {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 460px;
+            max-width: calc(100vw - 32px);
+            max-height: 82vh;
+            overflow-y: auto;
+            padding: 18px 22px;
+            gap: 12px;
+        }
+
+        /* Compact / Minimized HUD Ribbon State */
+        #tutorial-overlay.minimized {
+            top: max(14px, var(--safe-top));
+            right: max(14px, var(--safe-right));
+            left: auto;
+            transform: none;
+            width: auto;
+            max-width: calc(100vw - 32px);
+            padding: 8px 14px;
+            gap: 6px;
+            border-color: var(--teal-dim);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        #tutorial-overlay.verified {
+            border-color: var(--success-color);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.45);
+        }
+
+        /* Content Visibility Toggles */
+        #tutorial-overlay.minimized .tut-expanded-content {
+            display: none !important;
+        }
+
+        #tutorial-overlay.expanded .tut-compact-bar {
+            display: none !important;
+        }
+
+        /* Header elements */
+        .tut-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .tut-title {
+            font-size: 12px;
+            color: var(--amber-bright);
+            letter-spacing: 1.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .tut-step-count {
+            font-size: 11px;
+            color: var(--muted-text);
+            font-weight: bold;
+        }
+
+        .tut-header-btns {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-toggle-view {
+            background: rgba(13, 148, 136, 0.2);
+            border: 1px solid var(--teal-dim);
+            color: var(--teal-accent);
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-toggle-view:hover {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: var(--teal-accent);
+        }
+
+        .btn-toggle-view.btn-reset-accent {
+            color: var(--amber-bright);
+            border-color: var(--amber-bright);
+            background: rgba(217, 119, 6, 0.2);
+        }
+
+        .btn-toggle-view.btn-reset-accent:hover {
+            background: rgba(217, 119, 6, 0.4);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        }
+
+        .tut-progress-bar {
+            width: 100%;
+            height: 3px;
+            background: #1e293b;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .tut-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal-dim), var(--teal-accent));
+            width: 16.6%;
+            transition: width 0.4s ease;
+        }
+
+        .tut-section-title {
+            font-size: 10px;
+            color: var(--teal-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .tut-concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 3px solid var(--teal-dim);
+            padding: 10px 12px;
+            border-radius: 0 4px 4px 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .tut-task-box {
+            background: rgba(30, 41, 59, 0.9);
+            border-left: 3px solid var(--amber-bright);
+            padding: 10px 12px;
+            border-radius: 0 4px 4px 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #fff;
+        }
+
+        .tut-task-box strong {
+            color: var(--amber-bright);
+        }
+
+        /* Tactile Badges */
+        .tut-badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tut-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 4px;
+            font-size: 10px;
+            color: #94a3b8;
+            transition: all 0.25s ease;
+        }
+
+        .tut-badge .status-icon {
+            font-size: 11px;
+            opacity: 0.5;
+        }
+
+        .tut-badge.completed {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: var(--success-color);
+            color: #86efac;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
+        }
+
+        .tut-badge.completed .status-icon {
+            opacity: 1;
+            color: var(--success-color);
+        }
+
+        .tut-status-verified {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid var(--success-color);
+            color: #86efac;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
+        }
+
+        .tut-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tut-btn {
+            background: transparent;
+            color: var(--muted-text);
+            border: 1px solid #475569;
+            padding: 7px 12px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .tut-btn:hover, .tut-btn:active {
+            color: #fff;
+            border-color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tut-btn.next-step {
+            background: rgba(13, 148, 136, 0.2);
+            color: var(--teal-accent);
+            border-color: var(--teal-dim);
+            font-weight: bold;
+            flex-grow: 1;
+        }
+
+        .tut-btn.next-step:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: #334155;
+            color: #64748b;
+            background: transparent;
+        }
+
+        .tut-btn.next-step:not(:disabled):hover, .tut-btn.next-step:not(:disabled):active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: var(--teal-accent);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .tut-btn.action-primary {
+            background: rgba(217, 119, 6, 0.3);
+            border-color: var(--amber-bright);
+            color: var(--amber-bright);
+            font-weight: bold;
+            padding: 10px 16px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .tut-btn.action-primary:hover {
+            background: rgba(217, 119, 6, 0.5);
+            box-shadow: 0 0 16px rgba(251, 191, 36, 0.5);
+        }
+
+        /* Compact Bar Row Layout */
+        .tut-compact-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tut-compact-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--amber-bright);
+            white-space: nowrap;
+        }
+
+        /* Center Modals */
+        .modal-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(10, 10, 15, 0.95);
+            padding: 26px 30px;
+            border-radius: 10px;
+            border: 1px solid var(--teal-accent);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            display: none;
+            pointer-events: auto;
+            z-index: 100;
+            width: 90%;
+            max-width: 480px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .modal-screen h2 {
+            margin-top: 0;
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+
+        .modal-screen p {
+            color: #cbd5e1;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        #game-over {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 40px rgba(244, 63, 94, 0.4);
+        }
+
+        #game-over h2 {
+            color: var(--danger-color);
+        }
+
+        /* Responsive Breakpoints (iPhone Portrait / Landscape) */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 16px;
+            }
+            .hud-panel {
+                padding: 8px 12px;
+            }
+            .stats {
+                gap: 10px;
+                margin-top: 4px;
+            }
+            .stat-value {
+                font-size: 15px;
+            }
+            .stat-label {
+                font-size: 8px;
+            }
+            .controls-desktop {
+                display: none;
+            }
+            #tutorial-overlay.minimized {
+                top: calc(max(10px, var(--safe-top)) + 52px);
+                left: max(10px, var(--safe-left));
+                right: max(10px, var(--safe-right));
+                width: auto;
+                max-width: none;
+                padding: 6px 10px;
+            }
+            .tut-compact-bar {
+                gap: 5px;
+            }
+            .tut-compact-title {
+                font-size: 10px;
+            }
+            .dpad-grid {
+                grid-template-columns: repeat(3, 42px);
+                grid-template-rows: repeat(3, 42px);
+                gap: 4px;
+                padding: 5px;
+            }
+            .touch-btn.rot {
+                width: 44px;
+                height: 40px;
+            }
+            .touch-btn.hard-drop {
+                width: 142px;
+                height: 42px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="ui-layer">
+        <div class="top-row">
+            <div class="hud-panel">
+                <header>
+                    <h1>NESTRIS Δ</h1>
+                    <p>Transdimensional Engine // iPhone & Touch Edition</p>
+                </header>
+                <div class="stats">
+                    <div class="stat-box">
+                        <span class="stat-label">Score</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Level</span>
+                        <span class="stat-value" id="level">1</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Speed</span>
+                        <span class="stat-value" id="speed-stat">1.00/s</span>
+                        <span class="stat-subtext" id="speed-status">Half-Speed (Level 1)</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Density</span>
+                        <span class="stat-value" id="density">0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hud-actions">
+                <button class="btn-action highlight" id="btn-open-tutorial" onclick="startTutorial()">🎓 Academy</button>
+                <button class="btn-action" id="btn-restart" onclick="handleRestartButton()">Restart</button>
+                <button class="btn-action" id="btn-toggle-touch" onclick="toggleTouchControls()" style="font-size: 10px; padding: 6px 10px;">Touch UI</button>
+            </div>
+        </div>
+        
+        <div class="hud-panel controls-desktop">
+            <strong>CAMERA:</strong> Mouse Drag / Touch Swipe to Orbit | Scroll / Pinch to Zoom<br>
+            <strong>MOVE (XY):</strong> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd><br>
+            <strong>PITCH (X):</strong> <kbd>R</kbd> / <kbd>F</kbd> &nbsp;|&nbsp; 
+            <strong>YAW (Z):</strong> <kbd>Q</kbd> / <kbd>E</kbd> &nbsp;|&nbsp; 
+            <strong>ROLL (Y):</strong> <kbd>Z</kbd> / <kbd>X</kbd><br>
+            <strong>HARD DROP:</strong> <kbd>SPACE</kbd>
+        </div>
+    </div>
+
+    <!-- On-Screen Touch Deck for iPhone / Mobile -->
+    <div id="mobile-touch-deck">
+        <!-- Left: Virtual D-Pad -->
+        <div class="touch-cluster">
+            <div class="dpad-grid">
+                <div></div>
+                <button class="touch-btn" id="tbtn-up" data-act="up">▲</button>
+                <div></div>
+                
+                <button class="touch-btn" id="tbtn-left" data-act="left">◀</button>
+                <button class="touch-btn center-btn" id="tbtn-soft" data-act="soft">SOFT</button>
+                <button class="touch-btn" id="tbtn-right" data-act="right">▶</button>
+                
+                <div></div>
+                <button class="touch-btn" id="tbtn-down" data-act="down">▼</button>
+                <div></div>
+            </div>
+        </div>
+
+        <!-- Right: Rotations & Hard Drop -->
+        <div class="touch-cluster action-cluster">
+            <div class="rot-row">
+                <button class="touch-btn rot" id="tbtn-pitch" data-act="pitch">
+                    PITCH<span>(X: R)</span>
+                </button>
+                <button class="touch-btn rot" id="tbtn-yaw" data-act="yaw">
+                    YAW<span>(Z: Q)</span>
+                </button>
+                <button class="touch-btn rot" id="tbtn-roll" data-act="roll">
+                    ROLL<span>(Y: Z)</span>
+                </button>
+            </div>
+            <button class="touch-btn hard-drop" id="tbtn-drop" data-act="drop">⚡ HARD DROP</button>
+        </div>
+    </div>
+
+    <!-- Notification Banner -->
+    <div id="notification-banner">★ HYPERPOCKET NEST DETECTED (+500 BONUS) ★</div>
+
+    <!-- Collapsible Interactive Tutorial Card -->
+    <div id="tutorial-overlay" class="expanded">
+        <!-- COMPACT RIBBON VIEW (Shows when minimized to preserve 100% 3D game view) -->
+        <div class="tut-compact-bar">
+            <div class="tut-compact-title" id="tut-compact-title">L1: CAMERA ORBIT</div>
+            <div class="tut-badges-container" id="tut-compact-badges"></div>
+            <button class="btn-toggle-view" id="tut-compact-solution-btn" onclick="showTutorialSolution()" title="Show how to solve this step" style="border-color: var(--teal-accent); color: var(--teal-accent);">💡 Solution</button>
+            <button class="btn-toggle-view" id="tut-compact-example-btn" onclick="cycleTutorialExample()" title="Switch to another puzzle example" style="display: none; border-color: #38bdf8; color: #38bdf8;">🎲 Example</button>
+            <button class="btn-toggle-view btn-reset-accent" onclick="restartTutorialStep()" title="Restart and try again">🔄 Try Again</button>
+            <button class="btn-toggle-view" onclick="expandTutorial()">📖 Details</button>
+            <button class="tut-btn next-step" id="tut-compact-next-btn" onclick="advanceTutorialStep()" disabled style="padding: 4px 10px; font-size: 10px;">Next →</button>
+        </div>
+
+        <!-- EXPANDED DETAILED VIEW (Shows when reading full lesson) -->
+        <div class="tut-expanded-content" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="tut-header">
+                <div>
+                    <div class="tut-title" id="tut-title">LESSON 1: SPATIAL PERSPECTIVE</div>
+                    <div class="tut-step-count" id="tut-step-count">Step 1 of 6</div>
+                </div>
+                <div class="tut-header-btns">
+                    <button class="btn-toggle-view btn-reset-accent" onclick="restartTutorialStep()">🔄 Try Again</button>
+                    <button class="btn-toggle-view" onclick="minimizeTutorial()">🔽 Minimize & Play</button>
+                </div>
+            </div>
+
+            <div class="tut-progress-bar">
+                <div class="tut-progress-fill" id="tut-progress-fill"></div>
+            </div>
+
+            <div>
+                <div class="tut-section-title">Conceptual Principle</div>
+                <div class="tut-concept-box" id="tut-concept-text">
+                    In 3D/4D multi-planar space, any single static 2D view is an optical illusion. Gaps appear filled when they are actually hollow dead volume behind blocks.
+                </div>
+            </div>
+
+            <div>
+                <div class="tut-section-title">Required Action (Learn By Doing)</div>
+                <div class="tut-task-box" id="tut-task-text">
+                    Drag across the screen to orbit the camera at least 45°, and pinch or roll scroll wheel to zoom.
+                </div>
+            </div>
+
+            <div>
+                <div class="tut-section-title">Tactile Verification Checklist</div>
+                <div class="tut-badges-container" id="tut-badges"></div>
+            </div>
+
+            <div class="tut-status-verified" id="tut-status-verified">
+                <span>✓</span> UNDERSTANDING CONFIRMED — ACTION VERIFIED
+            </div>
+
+            <button class="tut-btn action-primary" onclick="minimizeTutorial()">
+                🎮 I'm Ready — Minimize & Perform Task
+            </button>
+
+            <div class="tut-actions" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button class="tut-btn" id="tut-solution-btn" onclick="showTutorialSolution()" style="border-color: var(--teal-accent); color: var(--teal-accent); font-weight: bold;">💡 Show Solution</button>
+                <button class="tut-btn" id="tut-example-btn" onclick="cycleTutorialExample()" style="display: none; border-color: #38bdf8; color: #38bdf8; font-weight: bold;">🎲 Try Another Example</button>
+                <button class="tut-btn" onclick="restartTutorialStep()" style="border-color: var(--amber-bright); color: var(--amber-bright); font-weight: bold;">🔄 Try Again</button>
+                <button class="tut-btn" onclick="exitTutorial()">Exit Academy</button>
+                <button class="tut-btn next-step" id="tut-next-btn" onclick="advanceTutorialStep()" disabled>Next Lesson →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div class="modal-screen" id="welcome-modal">
+        <h2 style="color: var(--teal-accent);">NESTRIS Δ // MOBILE READY</h2>
+        <p>
+            Formatted for <strong>iPhone & Desktop Touch/Keyboard</strong>. Level 1 starts at a calm <strong>half-speed tempo</strong> (1.00 drop/sec) and smoothly accelerates as you place pieces.
+        </p>
+        <p style="font-size: 12px; color: var(--muted-text);">
+            Includes full hands-on Academy with instant lesson recovery and 1-tap <strong>🔄 Reset</strong> anytime!
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+            <button class="btn-action highlight" onclick="closeWelcomeAndStartTutorial()">Start Academy Tutorial</button>
+            <button class="btn-action" onclick="closeWelcomeAndPlay()">Play Live Game</button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal-screen" id="game-over">
+        <h2>STRUCTURAL FAILURE</h2>
+        <p>Spawn Buffer Breached (z ≥ 32).</p>
+        <button class="btn-action highlight" onclick="resetGame()">Reinitialize System</button>
+    </div>
+
+    <!-- Load Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        const WELL_W = 16;
+        const WELL_D = 16;
+        const WELL_H = 32;
+        const SPAWN_Z = 31;
+
+        let score = 0;
+        let level = 1;
+        let linesCleared = 0;
+        let isGameOver = false;
+        let piecesPlacedInLevel = 0;
+        let pauseGravity = false;
+
+        // --- WEB AUDIO & HAPTIC CONTROLLER ---
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            triggerHaptic(ms = 15) {
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(ms); } catch(e){}
+                }
+            },
+            playKey() {
+                this.triggerHaptic(12);
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.04);
+                    gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.04);
+                } catch(e){}
+            },
+            playRotate() {
+                this.triggerHaptic(20);
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(540, this.ctx.currentTime + 0.06);
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.06);
+                } catch(e){}
+            },
+            playConfirm() {
+                this.triggerHaptic([30, 40, 30]);
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                        gain.gain.setValueAtTime(0.1, now + i * 0.06);
+                        gain.gain.linearRampToValueAtTime(0.001, now + i * 0.06 + 0.16);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.18);
+                    });
+                } catch(e){}
+            },
+            playNestFanfare() {
+                this.triggerHaptic([40, 50, 40, 60, 60]);
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    [440, 554.37, 659.25, 880, 1108.7].forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                        gain.gain.setValueAtTime(0.12, now + i * 0.06);
+                        gain.gain.linearRampToValueAtTime(0.001, now + i * 0.06 + 0.28);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.3);
+                    });
+                } catch(e){}
+            }
+        };
+
+        // --- LEGENDARY PIECES ---
+        const LEGENDARIES = [
+            {
+                name: "MONOLITH", // I x I
+                color: 0x00ffff,
+                cells: [[0,0,0], [0,0,1], [0,0,2], [0,0,3]]
+            },
+            {
+                name: "REACTOR", // O x O
+                color: 0xffaa00,
+                cells: [[0,0,0], [1,0,0], [0,1,0], [1,1,0], [0,0,1], [1,0,1], [0,1,1], [1,1,1]]
+            },
+            {
+                name: "CRADLE", // T x T
+                color: 0xff00ff,
+                cells: [[1,1,0], [0,0,1], [1,0,1], [2,0,1], [0,1,1], [1,1,1], [2,1,1], [0,2,1], [1,2,1], [2,2,1]]
+            },
+            {
+                name: "HELIX", // S x Z
+                color: 0x00ff77,
+                cells: [[1,0,0], [2,0,0], [1,1,0], [2,1,0], [0,1,1], [1,1,1], [0,2,1], [1,2,1]]
+            },
+            {
+                name: "PLATE", // I x I
+                color: 0xff3344,
+                cells: (function(){
+                    let c = [];
+                    for(let x=0; x<4; x++) for(let y=0; y<4; y++) c.push([x,y,0]);
+                    return c;
+                })()
+            }
+        ];
+
+        // --- THREE.JS SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050508);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.up.set(0, 0, 1);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+        dirLight.position.set(30, 20, 60);
+        scene.add(dirLight);
+
+        // Well visualization wireframe
+        const wellGeo = new THREE.BoxGeometry(WELL_W, WELL_D, WELL_H);
+        const wellEdges = new THREE.EdgesGeometry(wellGeo);
+        const wellMat = new THREE.LineBasicMaterial({ color: 0x1e3a5f, transparent: true, opacity: 0.6 });
+        const wellMesh = new THREE.LineSegments(wellEdges, wellMat);
+        wellMesh.position.set(WELL_W/2, WELL_D/2, WELL_H/2);
+        scene.add(wellMesh);
+
+        // Floor Grid
+        const gridHelper = new THREE.GridHelper(WELL_W, WELL_W, 0x00ffff, 0x0f2942);
+        gridHelper.rotation.x = Math.PI / 2;
+        gridHelper.position.set(WELL_W/2, WELL_D/2, 0);
+        scene.add(gridHelper);
+
+        // Grid Data Structure
+        let wellData = [];
+        function clearWellData() {
+            wellData = [];
+            for (let x = 0; x < WELL_W; x++) {
+                wellData[x] = [];
+                for (let y = 0; y < WELL_D; y++) {
+                    wellData[x][y] = new Array(WELL_H).fill(null);
+                }
+            }
+        }
+        clearWellData();
+
+        const maxInstances = WELL_W * WELL_D * WELL_H;
+        const blockGeo = new THREE.BoxGeometry(1, 1, 1);
+        
+        const blockMat = new THREE.MeshPhysicalMaterial({
+            color: 0x111625,
+            metalness: 0.2,
+            roughness: 0.2,
+            transmission: 0.75,
+            transparent: true,
+            opacity: 0.95,
+            polygonOffset: true,
+            polygonOffsetFactor: 1, 
+            polygonOffsetUnits: 1
+        });
+        
+        const lockedMesh = new THREE.InstancedMesh(blockGeo, blockMat, maxInstances);
+        lockedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(lockedMesh);
+
+        const edgeGeo = new THREE.EdgesGeometry(blockGeo);
+        const edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+        const lockedEdges = new THREE.InstancedMesh(new THREE.LineSegments(edgeGeo).geometry, edgeMat, maxInstances);
+        lockedEdges.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(lockedEdges);
+
+        let lockedCount = 0;
+
+        // Active Piece
+        let activePiece = null;
+        let activePieceGroup = new THREE.Group();
+        scene.add(activePieceGroup);
+
+        function generatePieceVoxels(template, sizeClass) {
+            let voxels = [];
+            const scale = sizeClass === 'HALF' ? 1 : (sizeClass === 'DOUBLE' ? 4 : 2);
+            template.cells.forEach(cell => {
+                const [cx, cy, cz] = cell;
+                for (let i = 0; i < scale; i++) {
+                    for (let j = 0; j < scale; j++) {
+                        for (let k = 0; k < scale; k++) {
+                            voxels.push({
+                                x: cx * scale + i,
+                                y: cy * scale + j,
+                                z: cz * scale + k
+                            });
+                        }
+                    }
+                }
+            });
+            return voxels;
+        }
+
+        function spawnPiece(forcedTemplate = null, forcedSizeClass = null, forcedPos = null) {
+            const template = forcedTemplate || LEGENDARIES[Math.floor(Math.random() * LEGENDARIES.length)];
+            const r = Math.random();
+            const sizeClass = forcedSizeClass || (r > 0.75 ? 'HALF' : 'NORMAL');
+            const voxels = generatePieceVoxels(template, sizeClass);
+            
+            activePiece = {
+                template: template.name,
+                color: template.color,
+                voxels: voxels,
+                pos: forcedPos ? { ...forcedPos } : { x: Math.floor(WELL_W/2) - 2, y: Math.floor(WELL_D/2) - 2, z: SPAWN_Z },
+                sizeClass: sizeClass
+            };
+
+            if (!forcedPos) {
+                let maxZ = 0;
+                activePiece.voxels.forEach(v => { if (v.z > maxZ) maxZ = v.z; });
+                activePiece.pos.z = SPAWN_Z - maxZ - 1;
+            }
+
+            if (checkCollision(activePiece.pos, activePiece.voxels)) {
+                if (!tutorialMode) triggerGameOver();
+                return false;
+            }
+            buildActivePieceMesh();
+            return true;
+        }
+
+        function buildActivePieceMesh() {
+            while(activePieceGroup.children.length > 0){ 
+                activePieceGroup.remove(activePieceGroup.children[0]); 
+            }
+
+            if (!activePiece) return;
+
+            const pMat = new THREE.MeshPhysicalMaterial({
+                color: 0x050b14,
+                emissive: activePiece.color,
+                emissiveIntensity: 0.35,
+                transmission: 0.85,
+                transparent: true,
+                opacity: 0.92,
+                polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+            });
+            const pEdgeMat = new THREE.LineBasicMaterial({ color: activePiece.color });
+
+            activePiece.voxels.forEach(v => {
+                const mesh = new THREE.Mesh(blockGeo, pMat);
+                mesh.position.set(v.x + 0.5, v.y + 0.5, v.z + 0.5);
+                const edges = new THREE.LineSegments(edgeGeo, pEdgeMat);
+                mesh.add(edges);
+                activePieceGroup.add(mesh);
+            });
+            
+            updateActivePieceTransform();
+        }
+
+        function updateActivePieceTransform() {
+            if (!activePiece) return;
+            activePieceGroup.position.set(activePiece.pos.x, activePiece.pos.y, activePiece.pos.z);
+        }
+
+        // --- COLLISION & GRID MATH ---
+        function checkCollision(pos, voxels) {
+            for (let i = 0; i < voxels.length; i++) {
+                const vx = pos.x + voxels[i].x;
+                const vy = pos.y + voxels[i].y;
+                const vz = pos.z + voxels[i].z;
+
+                if (vx < 0 || vx >= WELL_W || vy < 0 || vy >= WELL_D || vz < 0) return true;
+                if (vz >= WELL_H) continue; 
+                if (wellData[vx][vy][vz] !== null) return true;
+            }
+            return false;
+        }
+
+        function lockPiece() {
+            if (!activePiece) return;
+            let hitSpawnBuffer = false;
+
+            activePiece.voxels.forEach(v => {
+                const vx = activePiece.pos.x + v.x;
+                const vy = activePiece.pos.y + v.y;
+                const vz = activePiece.pos.z + v.z;
+                
+                if (vz >= WELL_H) {
+                    hitSpawnBuffer = true;
+                    return;
+                }
+                wellData[vx][vy][vz] = activePiece.color;
+            });
+
+            if (hitSpawnBuffer) {
+                if (!tutorialMode) triggerGameOver();
+                return;
+            }
+
+            score += (activePiece.voxels.length * 2);
+            piecesPlacedInLevel++;
+            
+            checkSlabClears();
+            updateLockedMeshes();
+            updateDensity();
+            updateSpeedDisplay();
+
+            if (tutorialMode) {
+                onTutorialPieceLocked();
+            } else {
+                spawnPiece();
+            }
+            
+            document.getElementById('score').innerText = score;
+        }
+
+        function checkSlabClears() {
+            let slabsCleared = 0;
+            for (let z = WELL_H - 1; z >= 0; z--) {
+                let isFull = true;
+                for (let x = 0; x < WELL_W; x++) {
+                    for (let y = 0; y < WELL_D; y++) {
+                        if (wellData[x][y][z] === null) {
+                            isFull = false;
+                            break;
+                        }
+                    }
+                    if (!isFull) break;
+                }
+
+                if (isFull) {
+                    slabsCleared++;
+                    for (let dropZ = z; dropZ < WELL_H - 1; dropZ++) {
+                        for (let x = 0; x < WELL_W; x++) {
+                            for (let y = 0; y < WELL_D; y++) {
+                                wellData[x][y][dropZ] = wellData[x][y][dropZ + 1];
+                            }
+                        }
+                    }
+                    for (let x = 0; x < WELL_W; x++) {
+                        for (let y = 0; y < WELL_D; y++) {
+                            wellData[x][y][WELL_H - 1] = null;
+                        }
+                    }
+                }
+            }
+
+            if (slabsCleared > 0) {
+                const multipliers = [0, 100, 300, 500, 800, 1200];
+                const base = slabsCleared <= 5 ? multipliers[slabsCleared] : 1200 + (slabsCleared - 5) * 200;
+                score += base * level;
+                linesCleared += slabsCleared;
+                const newLevel = Math.floor(linesCleared / 10) + 1;
+                if (newLevel !== level) {
+                    level = newLevel;
+                    piecesPlacedInLevel = 0;
+                    document.getElementById('level').innerText = level;
+                }
+                showNotification(`★ ${slabsCleared} HYPER-SLAB CLEARED (+${base * level}) ★`);
+                AudioFX.playNestFanfare();
+            }
+        }
+
+        function updateLockedMeshes() {
+            lockedCount = 0;
+            const dummy = new THREE.Object3D();
+            const colorObj = new THREE.Color();
+
+            for (let z = 0; z < WELL_H; z++) {
+                for (let x = 0; x < WELL_W; x++) {
+                    for (let y = 0; y < WELL_D; y++) {
+                        const colorHex = wellData[x][y][z];
+                        if (colorHex !== null) {
+                            dummy.position.set(x + 0.5, y + 0.5, z + 0.5);
+                            dummy.updateMatrix();
+                            
+                            lockedMesh.setMatrixAt(lockedCount, dummy.matrix);
+                            lockedEdges.setMatrixAt(lockedCount, dummy.matrix);
+                            
+                            colorObj.setHex(colorHex);
+                            lockedEdges.setColorAt(lockedCount, colorObj);
+                            
+                            lockedCount++;
+                        }
+                    }
+                }
+            }
+            
+            lockedMesh.count = lockedCount;
+            lockedEdges.count = lockedCount;
+            lockedMesh.instanceMatrix.needsUpdate = true;
+            lockedEdges.instanceMatrix.needsUpdate = true;
+            if (lockedEdges.instanceColor) lockedEdges.instanceColor.needsUpdate = true;
+        }
+
+        function updateDensity() {
+            let maxZ = -1;
+            let occupied = 0;
+            for (let z = 0; z < WELL_H; z++) {
+                let rowOccupied = 0;
+                for (let x = 0; x < WELL_W; x++) {
+                    for (let y = 0; y < WELL_D; y++) {
+                        if (wellData[x][y][z] !== null) {
+                            rowOccupied++;
+                        }
+                    }
+                }
+                if (rowOccupied > 0) {
+                    maxZ = z;
+                    occupied += rowOccupied;
+                }
+            }
+
+            if (maxZ === -1) {
+                document.getElementById('density').innerText = "0.00";
+                return;
+            }
+
+            const totalVolume = WELL_W * WELL_D * (maxZ + 1);
+            const density = occupied / totalVolume;
+            
+            const densityEl = document.getElementById('density');
+            densityEl.innerText = density.toFixed(2);
+            
+            if (density < 0.50) densityEl.style.color = 'var(--danger-color)';
+            else if (density >= 0.80) densityEl.style.color = 'var(--teal-accent)';
+            else densityEl.style.color = 'var(--white-text)';
+        }
+
+        // --- SPEED & ACCELERATION LOGIC ---
+        function getGravitySpeed() {
+            let baseSpeed;
+            if (level === 1) {
+                // Begins at half-speed (1.00 subcells/sec = 1000ms delay vs original 2.0 = 500ms)
+                // Gradually accelerates over the first 8 pieces placed in Level 1
+                const ramp = Math.min(1.0, piecesPlacedInLevel / 8);
+                baseSpeed = 1.0 + ramp * 1.0;
+            } else {
+                baseSpeed = 2.0 * Math.pow(1.28, level - 1);
+            }
+            
+            let msPerDrop = 1000 / baseSpeed;
+            if (activePiece && activePiece.sizeClass === 'HALF') msPerDrop *= 0.8;
+            if (activePiece && activePiece.sizeClass === 'DOUBLE') msPerDrop *= 1.25;
+            
+            return Math.max(50, msPerDrop);
+        }
+
+        function updateSpeedDisplay() {
+            const ms = getGravitySpeed();
+            const subcellsPerSec = (1000 / ms).toFixed(2);
+            document.getElementById('speed-stat').innerText = `${subcellsPerSec}/s`;
+            
+            const statusEl = document.getElementById('speed-status');
+            if (level === 1) {
+                if (piecesPlacedInLevel === 0) {
+                    statusEl.innerText = "Half-Speed (Level 1 Start)";
+                    statusEl.style.color = "var(--amber-bright)";
+                } else if (piecesPlacedInLevel < 8) {
+                    statusEl.innerText = `Accelerating (${piecesPlacedInLevel}/8 blocks)`;
+                    statusEl.style.color = "var(--teal-accent)";
+                } else {
+                    statusEl.innerText = "Standard Speed (Level 1 Ready)";
+                    statusEl.style.color = "var(--success-color)";
+                }
+            } else {
+                statusEl.innerText = `Exponential Level ${level}`;
+                statusEl.style.color = "var(--teal-accent)";
+            }
+        }
+
+        // --- MOVEMENT & ROTATION ---
+        function movePiece(dx, dy, dz) {
+            if (!activePiece) return false;
+            const newPos = { x: activePiece.pos.x + dx, y: activePiece.pos.y + dy, z: activePiece.pos.z + dz };
+            if (!checkCollision(newPos, activePiece.voxels)) {
+                activePiece.pos = newPos;
+                updateActivePieceTransform();
+                AudioFX.playKey();
+
+                if (tutorialMode) {
+                    if (dx < 0) tutState.movedLeft = true;
+                    if (dx > 0) tutState.movedRight = true;
+                    if (dy > 0) tutState.movedFwd = true;
+                    if (dy < 0) tutState.movedBack = true;
+                    checkTutorialProgress();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function rotatePiece(axis, direction) {
+            if (!activePiece) return false;
+            let minX=999, maxX=-999, minY=999, maxY=-999, minZ=999, maxZ=-999;
+            activePiece.voxels.forEach(v => {
+                if(v.x < minX) minX = v.x; if(v.x > maxX) maxX = v.x;
+                if(v.y < minY) minY = v.y; if(v.y > maxY) maxY = v.y;
+                if(v.z < minZ) minZ = v.z; if(v.z > maxZ) maxZ = v.z;
+            });
+            const cx = (minX + maxX) / 2;
+            const cy = (minY + maxY) / 2;
+            const cz = (minZ + maxZ) / 2;
+
+            const newVoxels = [];
+            activePiece.voxels.forEach(v => {
+                let tx = v.x - cx;
+                let ty = v.y - cy;
+                let tz = v.z - cz;
+                
+                let nx, ny, nz;
+                if (axis === 'x') {
+                    nx = tx;
+                    ny = direction * tz;
+                    nz = -direction * ty;
+                } else if (axis === 'y') {
+                    nx = -direction * tz;
+                    ny = ty;
+                    nz = direction * tx;
+                } else if (axis === 'z') {
+                    nx = direction * ty;
+                    ny = -direction * tx;
+                    nz = tz;
+                }
+
+                newVoxels.push({
+                    x: Math.round(nx + cx),
+                    y: Math.round(ny + cy),
+                    z: Math.round(nz + cz)
+                });
+            });
+
+            let minNx=999, minNy=999, minNz=999;
+            newVoxels.forEach(v => {
+                if(v.x < minNx) minNx = v.x;
+                if(v.y < minNy) minNy = v.y;
+                if(v.z < minNz) minNz = v.z;
+            });
+            
+            const normalizedVoxels = newVoxels.map(v => ({
+                x: v.x - minNx,
+                y: v.y - minNy,
+                z: v.z - minNz
+            }));
+
+            const proposedPos = {
+                x: activePiece.pos.x + minNx,
+                y: activePiece.pos.y + minNy,
+                z: activePiece.pos.z + minNz
+            };
+
+            const kicks = [
+                {x: 0, y: 0, z: 0},
+                {x: 0, y: 0, z: 1},
+                {x: 0, y: 0, z: 2},
+                {x: -1, y: 0, z: 0}, {x: 1, y: 0, z: 0},
+                {x: 0, y: -1, z: 0}, {x: 0, y: 1, z: 0}
+            ];
+
+            for (let kick of kicks) {
+                const kPos = { x: proposedPos.x + kick.x, y: proposedPos.y + kick.y, z: proposedPos.z + kick.z };
+                if (!checkCollision(kPos, normalizedVoxels)) {
+                    activePiece.voxels = normalizedVoxels;
+                    activePiece.pos = kPos;
+                    buildActivePieceMesh();
+                    AudioFX.playRotate();
+
+                    if (tutorialMode) {
+                        if (axis === 'x') tutState.pitched = true;
+                        if (axis === 'z') tutState.yawed = true;
+                        if (axis === 'y') tutState.rolled = true;
+                        checkTutorialProgress();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function hardDrop() {
+            if (!activePiece) return;
+            while (movePiece(0, 0, -1)) { }
+            lockPiece();
+            AudioFX.playKey();
+        }
+
+        // --- CAMERA CONTROLS (Touch Drag & Pinch Zoom) ---
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let camTheta = Math.PI / 4;
+        let camPhi = Math.PI / 4;
+        let camRadius = WELL_W * 2.5;
+        const target = new THREE.Vector3(WELL_W/2, WELL_D/2, WELL_H/3);
+        let touchStartDist = 0;
+
+        function updateCamera() {
+            camPhi = Math.max(0.1, Math.min(Math.PI/2 - 0.05, camPhi));
+            camera.position.x = target.x + camRadius * Math.sin(camPhi) * Math.cos(camTheta);
+            camera.position.y = target.y + camRadius * Math.sin(camPhi) * Math.sin(camTheta);
+            camera.position.z = target.z + camRadius * Math.cos(camPhi);
+            camera.lookAt(target);
+        }
+        updateCamera();
+
+        // Mouse Listeners
+        renderer.domElement.addEventListener('mousedown', (e) => { 
+            AudioFX.init();
+            isDragging = true; 
+            prevMouse = { x: e.clientX, y: e.clientY }; 
+            // If user clicks play area while tutorial is expanded, minimize to let them play!
+            if (tutorialMode && document.getElementById('tutorial-overlay').classList.contains('expanded')) {
+                minimizeTutorial();
+            }
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - prevMouse.x;
+            const deltaY = e.clientY - prevMouse.y;
+            camTheta -= deltaX * 0.01;
+            camPhi -= deltaY * 0.01;
+            prevMouse = { x: e.clientX, y: e.clientY };
+            updateCamera();
+
+            if (tutorialMode && tutorialStepIndex === 0) {
+                tutState.orbitDelta += Math.abs(deltaX * 0.01) + Math.abs(deltaY * 0.01);
+                checkTutorialProgress();
+            }
+        });
+        window.addEventListener('wheel', (e) => {
+            camRadius += e.deltaY * 0.05;
+            camRadius = Math.max(10, Math.min(100, camRadius));
+            updateCamera();
+
+            if (tutorialMode && tutorialStepIndex === 0) {
+                tutState.zoomed = true;
+                checkTutorialProgress();
+            }
+        }, { passive: true });
+
+        // Touch Listeners (iPhone Orbit & Pinch Zoom)
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            AudioFX.init();
+            if (tutorialMode && document.getElementById('tutorial-overlay').classList.contains('expanded')) {
+                minimizeTutorial();
+            }
+            if (e.touches.length === 1) {
+                isDragging = true;
+                prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                touchStartDist = Math.sqrt(dx * dx + dy * dy);
+            }
+        }, { passive: false });
+
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                const deltaX = e.touches[0].clientX - prevMouse.x;
+                const deltaY = e.touches[0].clientY - prevMouse.y;
+                camTheta -= deltaX * 0.012;
+                camPhi -= deltaY * 0.012;
+                prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                updateCamera();
+
+                if (tutorialMode && tutorialStepIndex === 0) {
+                    tutState.orbitDelta += Math.abs(deltaX * 0.012) + Math.abs(deltaY * 0.012);
+                    checkTutorialProgress();
+                }
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (touchStartDist > 0) {
+                    const pinchDelta = touchStartDist - dist;
+                    camRadius += pinchDelta * 0.08;
+                    camRadius = Math.max(10, Math.min(100, camRadius));
+                    updateCamera();
+                    touchStartDist = dist;
+
+                    if (tutorialMode && tutorialStepIndex === 0) {
+                        tutState.zoomed = true;
+                        checkTutorialProgress();
+                    }
+                }
+            }
+        }, { passive: false });
+
+        renderer.domElement.addEventListener('touchend', () => {
+            isDragging = false;
+            touchStartDist = 0;
+        });
+
+        // Banner Toast
+        let bannerTimeout = null;
+        function showNotification(msg) {
+            const b = document.getElementById('notification-banner');
+            b.innerText = msg;
+            b.classList.add('show');
+            if (bannerTimeout) clearTimeout(bannerTimeout);
+            bannerTimeout = setTimeout(() => {
+                b.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- ON-SCREEN TOUCH CONTROLS DECK ---
+        function setupTouchDeck() {
+            const buttons = document.querySelectorAll('.touch-btn');
+            buttons.forEach(btn => {
+                const handleAction = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    AudioFX.init();
+                    if (isGameOver || isDemonstratingSolution) return;
+
+                    // Automatically minimize tutorial overlay if expanded so play area is fully visible!
+                    if (tutorialMode && document.getElementById('tutorial-overlay').classList.contains('expanded')) {
+                        minimizeTutorial();
+                    }
+
+                    const act = btn.getAttribute('data-act');
+                    switch(act) {
+                        case 'left': movePiece(-1, 0, 0); break;
+                        case 'right': movePiece(1, 0, 0); break;
+                        case 'up': movePiece(0, 1, 0); break;
+                        case 'down': movePiece(0, -1, 0); break;
+                        case 'soft': movePiece(0, 0, -1); break;
+                        case 'pitch': rotatePiece('x', 1); break;
+                        case 'yaw': rotatePiece('z', 1); break;
+                        case 'roll': rotatePiece('y', 1); break;
+                        case 'drop': hardDrop(); break;
+                    }
+                };
+
+                btn.addEventListener('touchstart', handleAction, { passive: false });
+                btn.addEventListener('mousedown', handleAction);
+            });
+        }
+        setupTouchDeck();
+
+        function toggleTouchControls() {
+            const deck = document.getElementById('mobile-touch-deck');
+            if (deck.style.display === 'none') {
+                deck.style.display = 'flex';
+                showNotification('Touch Controls Enabled');
+            } else {
+                deck.style.display = 'none';
+                showNotification('Touch Controls Hidden');
+            }
+        }
+
+        // --- COLLAPSIBLE TUTORIAL CONTROLS ---
+        function minimizeTutorial() {
+            const overlay = document.getElementById('tutorial-overlay');
+            overlay.classList.remove('expanded');
+            overlay.classList.add('minimized');
+            showNotification('Tutorial Minimized — 3D Workspace Clear');
+        }
+
+        function expandTutorial() {
+            const overlay = document.getElementById('tutorial-overlay');
+            overlay.classList.remove('minimized');
+            overlay.classList.add('expanded');
+        }
+
+        function handleRestartButton() {
+            if (tutorialMode) {
+                restartTutorialStep();
+            } else {
+                resetGame();
+            }
+        }
+
+        // --- INTERACTIVE TUTORIAL STATE MACHINE ---
+        let tutorialMode = false;
+        let tutorialStepIndex = 0;
+
+        const tutState = {
+            orbitDelta: 0,
+            zoomed: false,
+            movedLeft: false,
+            movedRight: false,
+            movedFwd: false,
+            movedBack: false,
+            pitched: false,
+            yawed: false,
+            rolled: false,
+            pocketUpward: false,
+            nestCompleted: false,
+            speedObserved: false
+        };
+
+        // --- MULTIPLE NESTING EXAMPLES FOR L5 ---
+        let l5ExampleIndex = 0;
+        let isDemonstratingSolution = false;
+
+        const L5_EXAMPLES = [
+            {
+                name: "Ex 1: Center Pocket (2×2×2 Cube)",
+                shortLabel: "Center Pocket",
+                task: "A Host CRADLE is anchored on the floor with an open 2×2×2 center pocket (X:7–8, Y:7–8). Steer the nimble Half-size Reactor (O ⊗ O) cube over the pocket, and press <b>HARD DROP</b> to seat it flush inside!",
+                hint: "Move right (+X) and north (+Y) to align with X:7–8, Y:7–8, then press HARD DROP.",
+                setupHost: () => {
+                    clearWellData();
+                    const hostColor = 0xff00ff;
+                    for (let x = 5; x <= 10; x++) {
+                        for (let y = 5; y <= 10; y++) {
+                            wellData[x][y][0] = hostColor;
+                            if (x <= 6 || x >= 9 || y <= 6 || y >= 9) {
+                                wellData[x][y][1] = hostColor;
+                                wellData[x][y][2] = hostColor;
+                            }
+                        }
+                    }
+                    updateLockedMeshes();
+                    updateDensity();
+                    pauseGravity = true;
+                    spawnPiece(LEGENDARIES[1], "HALF", { x: 5, y: 5, z: 12 });
+                },
+                pocketBounds: { minX: 7, maxX: 8, minY: 7, maxY: 8, minZ: 1, maxZ: 2 },
+                solution: {
+                    rotations: [],
+                    targetX: 7,
+                    targetY: 7,
+                    explanation: "Aligned 2×2×2 Half-Reactor over center pocket (X:7-8, Y:7-8) and dropped flush into cavity."
+                }
+            },
+            {
+                name: "Ex 2: Offset Pocket (West Pocket)",
+                shortLabel: "Offset West Pocket",
+                task: "The host pocket is offset to the West (X:5–6, Y:7–8). Steer the Half-Reactor left (-X) and north (+Y) directly over the cavity, then press <b>HARD DROP</b>!",
+                hint: "Move left (-X) and north (+Y) to align with X:5–6, Y:7–8, then press HARD DROP.",
+                setupHost: () => {
+                    clearWellData();
+                    const hostColor = 0x00d2ff;
+                    for (let x = 3; x <= 8; x++) {
+                        for (let y = 5; y <= 10; y++) {
+                            wellData[x][y][0] = hostColor;
+                            if (x <= 4 || x >= 7 || y <= 6 || y >= 9) {
+                                wellData[x][y][1] = hostColor;
+                                wellData[x][y][2] = hostColor;
+                            }
+                        }
+                    }
+                    updateLockedMeshes();
+                    updateDensity();
+                    pauseGravity = true;
+                    spawnPiece(LEGENDARIES[1], "HALF", { x: 8, y: 8, z: 12 });
+                },
+                pocketBounds: { minX: 5, maxX: 6, minY: 7, maxY: 8, minZ: 1, maxZ: 2 },
+                solution: {
+                    rotations: [],
+                    targetX: 5,
+                    targetY: 7,
+                    explanation: "Steered west (-X) to X:5-6, Y:7-8 and dropped into the offset pocket."
+                }
+            },
+            {
+                name: "Ex 3: Trench Mating (Pitched Monolith)",
+                shortLabel: "Rotational Trench",
+                task: "A host trench channel spans Y:6–9 at X:7 (Z:1). Press <b>PITCH (X: R)</b> to lay the Half-Monolith flat along the Y axis, align it over the trench, and press <b>HARD DROP</b>!",
+                hint: "Press PITCH (R) to rotate flat along the Y axis, align with X:7 at Y:6–9, then HARD DROP.",
+                setupHost: () => {
+                    clearWellData();
+                    const hostColor = 0xffaa00;
+                    for (let x = 5; x <= 9; x++) {
+                        for (let y = 4; y <= 11; y++) {
+                            wellData[x][y][0] = hostColor;
+                            if (x !== 7 || y < 6 || y > 9) {
+                                wellData[x][y][1] = hostColor;
+                                wellData[x][y][2] = hostColor;
+                            }
+                        }
+                    }
+                    updateLockedMeshes();
+                    updateDensity();
+                    pauseGravity = true;
+                    spawnPiece(LEGENDARIES[0], "HALF", { x: 7, y: 6, z: 12 });
+                },
+                pocketBounds: { minX: 7, maxX: 7, minY: 6, maxY: 9, minZ: 1, maxZ: 2 },
+                solution: {
+                    rotations: [{ axis: 'x', dir: 1 }],
+                    targetX: 7,
+                    targetY: 6,
+                    explanation: "Pitched Monolith 90° so it aligns along the Y axis trench at X:7, Y:6-9, then dropped flush."
+                }
+            }
+        ];
+
+        const TUTORIAL_STEPS = [
+            {
+                id: "camera",
+                shortTitle: "L1: Camera Orbit",
+                title: "Spatial Perspective & 3D Camera Orbit",
+                concept: "In 3D multi-planar space, any single static 2D view is an optical illusion. Gaps appear filled when they are actually hollow dead volume behind blocks. You MUST navigate your viewpoint around the well to evaluate depth accurately.",
+                task: "Drag across the screen (or mouse drag) to orbit the camera at least 45°, and pinch or roll scroll wheel to zoom.",
+                badges: [
+                    { id: "badge-orbit", label: "Orbit (≥ 45°)", check: () => tutState.orbitDelta >= 0.78 },
+                    { id: "badge-zoom", label: "Zoom (Pinch/Wheel)", check: () => tutState.zoomed }
+                ],
+                setup: () => {
+                    tutState.orbitDelta = 0;
+                    tutState.zoomed = false;
+                    pauseGravity = true;
+                    clearWellData();
+                    updateLockedMeshes();
+                    spawnPiece(LEGENDARIES[0], "NORMAL", { x: 7, y: 7, z: 12 });
+                },
+                isDone: () => tutState.orbitDelta >= 0.78 && tutState.zoomed
+            },
+            {
+                id: "movement",
+                shortTitle: "L2: Subcell Movement",
+                title: "Subcell Lattice Navigation",
+                concept: "The hyper-well is structured as a discrete subcell grid (16 × 16 × 32). Pieces translate horizontally across X (West/East) and Y (North/South) using the D-pad or keyboard keys.",
+                task: "Drive the active piece in all 4 horizontal directions to prove command of planar translation.",
+                badges: [
+                    { id: "badge-left", label: "◀ Left / A", check: () => tutState.movedLeft },
+                    { id: "badge-right", label: "▶ Right / D", check: () => tutState.movedRight },
+                    { id: "badge-fwd", label: "▲ North / W", check: () => tutState.movedFwd },
+                    { id: "badge-back", label: "▼ South / S", check: () => tutState.movedBack }
+                ],
+                setup: () => {
+                    tutState.movedLeft = tutState.movedRight = tutState.movedFwd = tutState.movedBack = false;
+                    pauseGravity = true;
+                    clearWellData();
+                    updateLockedMeshes();
+                    spawnPiece(LEGENDARIES[1], "NORMAL", { x: 7, y: 7, z: 14 });
+                },
+                isDone: () => tutState.movedLeft && tutState.movedRight && tutState.movedFwd && tutState.movedBack
+            },
+            {
+                id: "rotation",
+                shortTitle: "L3: 3-Axis Rotation",
+                title: "3-Axis Rotational Degrees of Freedom",
+                concept: "2D Tetris has only 1 rotational plane (spinning in 2D). In 3D space, rigid solids rotate across three orthogonal axes: Pitch (X: R), Yaw (Z: Q), and Roll (Y: Z).",
+                task: "Rotate the active piece across all 3 independent spatial axes (Pitch, Yaw, and Roll).",
+                badges: [
+                    { id: "badge-pitch", label: "Pitch (X: R)", check: () => tutState.pitched },
+                    { id: "badge-yaw", label: "Yaw (Z: Q)", check: () => tutState.yawed },
+                    { id: "badge-roll", label: "Roll (Y: Z)", check: () => tutState.rolled }
+                ],
+                setup: () => {
+                    tutState.pitched = tutState.yawed = tutState.rolled = false;
+                    pauseGravity = true;
+                    clearWellData();
+                    updateLockedMeshes();
+                    spawnPiece(LEGENDARIES[3], "NORMAL", { x: 7, y: 7, z: 14 });
+                },
+                isDone: () => tutState.pitched && tutState.yawed && tutState.rolled
+            },
+            {
+                id: "pocket",
+                shortTitle: "L4: Pocket Topography",
+                title: "Mated Geometry & Pocket Topography",
+                concept: "Pieces in NESTRIS Δ are Ternary Mating Products (A ⊗ B ⊗ C) of classic tetrominoes. The legendary CRADLE (T ⊗ T) is an intentional cup shape with an internal hollow pocket surrounded by rim walls—a receptor for guest pieces.",
+                task: "Orient the CRADLE using Pitch and Roll buttons so that its open hollow pocket faces directly UPWARD towards the sky (+Z).",
+                badges: [
+                    { id: "badge-pocket-up", label: "Receptor Cup UP (+Z)", check: () => tutState.pocketUpward }
+                ],
+                setup: () => {
+                    tutState.pocketUpward = false;
+                    pauseGravity = true;
+                    clearWellData();
+                    updateLockedMeshes();
+                    spawnPiece(LEGENDARIES[2], "NORMAL", { x: 6, y: 6, z: 12 });
+                    rotatePiece('x', 1);
+                },
+                isDone: () => {
+                    if (!activePiece) return false;
+                    let minZ = 999, maxZ = -999;
+                    activePiece.voxels.forEach(v => {
+                        if (v.z < minZ) minZ = v.z;
+                        if (v.z > maxZ) maxZ = v.z;
+                    });
+                    const baseCount = activePiece.voxels.filter(v => v.z === minZ).length;
+                    const topCount = activePiece.voxels.filter(v => v.z === maxZ).length;
+                    tutState.pocketUpward = (baseCount < topCount && (maxZ - minZ) >= 1);
+                    return tutState.pocketUpward;
+                }
+            },
+            {
+                id: "nesting",
+                shortTitle: "L5: Hyperpocket Nesting",
+                title: "Tactile Hyperpocket Nesting & Density",
+                concept: "\"Wasted volume is death.\" In 3D and 4D, empty voids ruin your Density score. When Density drops below 0.50, the system turns red. To survive, you must NEST nimble Half-size pieces into the hollow cavities of host pieces.",
+                task: "A Host CRADLE is anchored on the floor. Steer the nimble Half-size piece over the center receptor pocket, and press HARD DROP to seat it flush inside!",
+                badges: [
+                    { id: "badge-nest", label: "Seat in Pocket (DROP)", check: () => tutState.nestCompleted }
+                ],
+                setup: () => {
+                    tutState.nestCompleted = false;
+                    L5_EXAMPLES[l5ExampleIndex].setupHost();
+                },
+                isDone: () => tutState.nestCompleted
+            },
+            {
+                id: "acceleration",
+                shortTitle: "L6: Live Acceleration",
+                title: "Gentle Level 1 Pacing & Realtime Acceleration",
+                concept: "Level 1 begins at half-speed (1.00 subcells/sec instead of 2.00) to grant you cognitive time to survey 3D coordinates. As pieces lock, the engine smoothly accelerates towards standard tempo.",
+                task: "Take the controls in real-time gravity: Steer the active piece into a stable position, press HARD DROP to lock it, and watch the Drop Speed meter accelerate!",
+                badges: [
+                    { id: "badge-drop-live", label: "Lock Piece (DROP)", check: () => tutState.speedObserved }
+                ],
+                setup: () => {
+                    tutState.speedObserved = false;
+                    pauseGravity = false;
+                    piecesPlacedInLevel = 0;
+                    level = 1;
+                    updateSpeedDisplay();
+                    spawnPiece();
+                },
+                isDone: () => tutState.speedObserved
+            }
+        ];
+
+        function startTutorial() {
+            tutorialMode = true;
+            tutorialStepIndex = 0;
+            
+            // Update top HUD restart button to clearly indicate lesson reset
+            const restartBtn = document.getElementById('btn-restart');
+            if (restartBtn) {
+                restartBtn.innerText = '🔄 Reset Lesson';
+                restartBtn.style.borderColor = 'var(--amber-bright)';
+                restartBtn.style.color = 'var(--amber-bright)';
+            }
+
+            document.getElementById('tutorial-overlay').style.display = 'flex';
+            expandTutorial();
+            loadTutorialStep(0);
+        }
+
+        function loadTutorialStep(idx) {
+            tutorialStepIndex = idx;
+            const step = TUTORIAL_STEPS[idx];
+            
+            document.getElementById('tut-title').innerText = `LESSON ${idx + 1}: ${step.title}`;
+            document.getElementById('tut-compact-title').innerText = `${step.shortTitle}`;
+            document.getElementById('tut-step-count').innerText = `Step ${idx + 1} of ${TUTORIAL_STEPS.length}`;
+            document.getElementById('tut-progress-fill').style.width = `${((idx + 1) / TUTORIAL_STEPS.length) * 100}%`;
+            document.getElementById('tut-concept-text').innerText = step.concept;
+            
+            // Toggle visibility of the "Try Another Example" buttons based on lesson index
+            const exBtn = document.getElementById('tut-example-btn');
+            const cExBtn = document.getElementById('tut-compact-example-btn');
+            if (idx === 4) {
+                if (exBtn) exBtn.style.display = 'inline-flex';
+                if (cExBtn) cExBtn.style.display = 'inline-flex';
+                const ex = L5_EXAMPLES[l5ExampleIndex];
+                document.getElementById('tut-task-text').innerHTML = `${ex.task} <br><div style="margin-top:6px; color: #38bdf8; font-size: 11px; font-weight: bold;">[Active Puzzle: ${ex.name}]</div>`;
+                document.getElementById('tut-compact-title').innerText = `L5: ${ex.shortLabel}`;
+            } else {
+                if (exBtn) exBtn.style.display = 'none';
+                if (cExBtn) cExBtn.style.display = 'none';
+                document.getElementById('tut-task-text').innerHTML = step.task;
+            }
+            
+            // Build badges for both views
+            const badgesContainer = document.getElementById('tut-badges');
+            const compactBadgesContainer = document.getElementById('tut-compact-badges');
+            badgesContainer.innerHTML = '';
+            compactBadgesContainer.innerHTML = '';
+
+            step.badges.forEach(b => {
+                // Expanded badge
+                const el = document.createElement('div');
+                el.className = 'tut-badge';
+                el.id = b.id;
+                el.innerHTML = `<span class="status-icon">○</span> ${b.label}`;
+                badgesContainer.appendChild(el);
+
+                // Compact badge (synchronized)
+                const cEl = document.createElement('div');
+                cEl.className = 'tut-badge';
+                cEl.id = `compact-${b.id}`;
+                cEl.innerHTML = `<span class="status-icon">○</span> ${b.label}`;
+                compactBadgesContainer.appendChild(cEl);
+            });
+
+            document.getElementById('tutorial-overlay').classList.remove('verified');
+            document.getElementById('tut-status-verified').style.display = 'none';
+            document.getElementById('tut-next-btn').disabled = true;
+            document.getElementById('tut-compact-next-btn').disabled = true;
+
+            step.setup();
+            checkTutorialProgress();
+        }
+
+        function checkTutorialProgress() {
+            if (!tutorialMode) return;
+            const step = TUTORIAL_STEPS[tutorialStepIndex];
+            
+            step.badges.forEach(b => {
+                const isPassed = b.check();
+                const badgeEl = document.getElementById(b.id);
+                const compactBadgeEl = document.getElementById(`compact-${b.id}`);
+
+                if (isPassed) {
+                    if (badgeEl && !badgeEl.classList.contains('completed')) {
+                        badgeEl.classList.add('completed');
+                        badgeEl.querySelector('.status-icon').innerText = '✓';
+                        AudioFX.playKey();
+                    }
+                    if (compactBadgeEl && !compactBadgeEl.classList.contains('completed')) {
+                        compactBadgeEl.classList.add('completed');
+                        compactBadgeEl.querySelector('.status-icon').innerText = '✓';
+                    }
+                }
+            });
+
+            if (step.isDone()) {
+                const overlay = document.getElementById('tutorial-overlay');
+                if (!overlay.classList.contains('verified')) {
+                    overlay.classList.add('verified');
+                    document.getElementById('tut-status-verified').style.display = 'flex';
+                    document.getElementById('tut-next-btn').disabled = false;
+                    document.getElementById('tut-compact-next-btn').disabled = false;
+                    AudioFX.playConfirm();
+                }
+            }
+        }
+
+        function advanceTutorialStep() {
+            if (tutorialStepIndex + 1 < TUTORIAL_STEPS.length) {
+                loadTutorialStep(tutorialStepIndex + 1);
+                expandTutorial();
+            } else {
+                completeTutorial();
+            }
+        }
+
+        function restartTutorialStep() {
+            if (isDemonstratingSolution) return;
+            const wasMinimized = document.getElementById('tutorial-overlay').classList.contains('minimized');
+            clearWellData();
+            updateLockedMeshes();
+            loadTutorialStep(tutorialStepIndex);
+            if (wasMinimized) {
+                minimizeTutorial();
+            }
+            showNotification('🔄 Lesson reset: fresh piece ready!');
+            AudioFX.playKey();
+        }
+
+        function cycleTutorialExample() {
+            if (!tutorialMode || tutorialStepIndex !== 4 || isDemonstratingSolution) return;
+            l5ExampleIndex = (l5ExampleIndex + 1) % L5_EXAMPLES.length;
+            tutState.nestCompleted = false;
+
+            const wasMinimized = document.getElementById('tutorial-overlay').classList.contains('minimized');
+            clearWellData();
+            updateLockedMeshes();
+            loadTutorialStep(4);
+            if (wasMinimized) {
+                minimizeTutorial();
+            }
+
+            const ex = L5_EXAMPLES[l5ExampleIndex];
+            showNotification(`🎲 Loaded ${ex.name}: ${ex.hint}`);
+            AudioFX.playKey();
+        }
+
+        function showTutorialSolution() {
+            if (!tutorialMode || isDemonstratingSolution) return;
+
+            // Lesson 5 (Hyperpocket Nesting) solution demonstration
+            if (tutorialStepIndex === 4) {
+                const ex = L5_EXAMPLES[l5ExampleIndex];
+                isDemonstratingSolution = true;
+                showNotification(`💡 DEMO: Solving ${ex.name}...`);
+                AudioFX.playKey();
+
+                // Reset host and piece to known starting state
+                ex.setupHost();
+
+                setTimeout(() => {
+                    if (!activePiece) { isDemonstratingSolution = false; return; }
+
+                    // Step 1: Apply rotations if needed
+                    if (ex.solution.rotations && ex.solution.rotations.length > 0) {
+                        ex.solution.rotations.forEach(r => rotatePiece(r.axis, r.dir));
+                    }
+
+                    // Step 2: Animate translation step-by-step
+                    const stepInterval = setInterval(() => {
+                        if (!activePiece) { clearInterval(stepInterval); isDemonstratingSolution = false; return; }
+                        let moved = false;
+                        if (activePiece.pos.x < ex.solution.targetX) { movePiece(1, 0, 0); moved = true; }
+                        else if (activePiece.pos.x > ex.solution.targetX) { movePiece(-1, 0, 0); moved = true; }
+                        else if (activePiece.pos.y < ex.solution.targetY) { movePiece(0, 1, 0); moved = true; }
+                        else if (activePiece.pos.y > ex.solution.targetY) { movePiece(0, -1, 0); moved = true; }
+
+                        if (!moved) {
+                            clearInterval(stepInterval);
+                            setTimeout(() => {
+                                hardDrop();
+                                isDemonstratingSolution = false;
+                                showNotification(`💡 Solution Demonstrated! ${ex.solution.explanation} Press "Try Again" to do it yourself!`);
+                            }, 300);
+                        }
+                    }, 140);
+                }, 400);
+            }
+            // Lesson 4 (Pocket Topography)
+            else if (tutorialStepIndex === 3) {
+                isDemonstratingSolution = true;
+                showNotification('💡 Rotating Cradle so pocket faces UP (+Z)...');
+                rotatePiece('x', 1);
+                setTimeout(() => {
+                    tutState.pocketUpward = true;
+                    checkTutorialProgress();
+                    isDemonstratingSolution = false;
+                    showNotification('💡 Solution Demonstrated: Hollow receptor cup is pointing UP!');
+                }, 200);
+            }
+            // Lesson 1 (Camera Orbit & Zoom)
+            else if (tutorialStepIndex === 0) {
+                isDemonstratingSolution = true;
+                showNotification('💡 Demonstrating camera orbit and zoom...');
+                let step = 0;
+                const camInt = setInterval(() => {
+                    camTheta += 0.15;
+                    camPhi = Math.max(0.2, Math.min(Math.PI / 2 - 0.1, camPhi + 0.05));
+                    camDist = 48;
+                    updateCameraPosition();
+                    step++;
+                    if (step >= 8) {
+                        clearInterval(camInt);
+                        tutState.orbitDelta = 1.2;
+                        tutState.zoomed = true;
+                        checkTutorialProgress();
+                        isDemonstratingSolution = false;
+                        showNotification('💡 Camera orbit demonstrated!');
+                    }
+                }, 60);
+            }
+            // Lesson 2 (Movement)
+            else if (tutorialStepIndex === 1) {
+                isDemonstratingSolution = true;
+                showNotification('💡 Demonstrating 4-way translation...');
+                movePiece(-1, 0, 0);
+                setTimeout(() => {
+                    movePiece(2, 0, 0);
+                    setTimeout(() => {
+                        movePiece(-1, 1, 0);
+                        setTimeout(() => {
+                            movePiece(0, -2, 0);
+                            setTimeout(() => {
+                                movePiece(0, 1, 0);
+                                tutState.movedLeft = tutState.movedRight = tutState.movedFwd = tutState.movedBack = true;
+                                checkTutorialProgress();
+                                isDemonstratingSolution = false;
+                                showNotification('💡 4-way subcell translation demonstrated!');
+                            }, 150);
+                        }, 150);
+                    }, 150);
+                }, 150);
+            }
+            // Lesson 3 (Rotation)
+            else if (tutorialStepIndex === 2) {
+                isDemonstratingSolution = true;
+                showNotification('💡 Demonstrating Pitch, Yaw, and Roll...');
+                rotatePiece('x', 1);
+                setTimeout(() => {
+                    rotatePiece('z', 1);
+                    setTimeout(() => {
+                        rotatePiece('y', 1);
+                        tutState.pitched = tutState.yawed = tutState.rolled = true;
+                        checkTutorialProgress();
+                        isDemonstratingSolution = false;
+                        showNotification('💡 3-axis rotation demonstrated!');
+                    }, 200);
+                }, 200);
+            }
+            // Lesson 6 (Live Acceleration)
+            else if (tutorialStepIndex === 5) {
+                isDemonstratingSolution = true;
+                showNotification('💡 Locking piece to demonstrate acceleration...');
+                hardDrop();
+                tutState.speedObserved = true;
+                checkTutorialProgress();
+                isDemonstratingSolution = false;
+            }
+        }
+
+        function completeTutorial() {
+            tutorialMode = false;
+            document.getElementById('tutorial-overlay').style.display = 'none';
+            
+            const restartBtn = document.getElementById('btn-restart');
+            if (restartBtn) {
+                restartBtn.innerText = 'Restart';
+                restartBtn.style.borderColor = 'var(--teal-dim)';
+                restartBtn.style.color = 'var(--teal-accent)';
+            }
+
+            showNotification('🏆 ACADEMY GRADUATE: ALL SPATIAL CONCEPTS CERTIFIED!');
+            AudioFX.playNestFanfare();
+            resetGame();
+        }
+
+        function exitTutorial() {
+            tutorialMode = false;
+            document.getElementById('tutorial-overlay').style.display = 'none';
+            
+            const restartBtn = document.getElementById('btn-restart');
+            if (restartBtn) {
+                restartBtn.innerText = 'Restart';
+                restartBtn.style.borderColor = 'var(--teal-dim)';
+                restartBtn.style.color = 'var(--teal-accent)';
+            }
+
+            resetGame();
+        }
+
+        function onTutorialPieceLocked() {
+            if (!tutorialMode) return;
+            const step = TUTORIAL_STEPS[tutorialStepIndex];
+
+            // If the step is already complete, nothing further needed
+            if (step.isDone()) {
+                return;
+            }
+
+            // Step 4: Hyperpocket Nesting check
+            if (tutorialStepIndex === 4) {
+                const ex = L5_EXAMPLES[l5ExampleIndex];
+                let insidePocket = true;
+                activePiece.voxels.forEach(v => {
+                    const vx = activePiece.pos.x + v.x;
+                    const vy = activePiece.pos.y + v.y;
+                    const vz = activePiece.pos.z + v.z;
+                    if (!(vx >= ex.pocketBounds.minX && vx <= ex.pocketBounds.maxX &&
+                          vy >= ex.pocketBounds.minY && vy <= ex.pocketBounds.maxY &&
+                          vz >= ex.pocketBounds.minZ && vz <= ex.pocketBounds.maxZ)) {
+                        insidePocket = false;
+                    }
+                });
+
+                if (insidePocket) {
+                    tutState.nestCompleted = true;
+                    showNotification('★ HYPERPOCKET NEST DETECTED! DENSITY MAXIMUM (+500 BONUS) ★');
+                    AudioFX.playNestFanfare();
+                    checkTutorialProgress();
+                } else {
+                    showNotification('⚠️ Missed pocket! Resetting guest piece in 1s...');
+                    AudioFX.playKey();
+                    setTimeout(() => {
+                        if (tutorialMode && tutorialStepIndex === 4 && !tutState.nestCompleted && !isDemonstratingSolution) {
+                            step.setup();
+                        }
+                    }, 800);
+                }
+            } 
+            // Step 5: Live acceleration
+            else if (tutorialStepIndex === 5) {
+                tutState.speedObserved = true;
+                checkTutorialProgress();
+                spawnPiece(); // Continuous play in live test
+            } 
+            // Steps 0, 1, 2, 3: Premature drop recovery!
+            else {
+                // If a piece locked before all required actions are satisfied (e.g. pitch done, but yaw/roll pending),
+                // we clean premature voxels and respawn a fresh active block so the player is never stranded!
+                showNotification('⚠️ Piece locked! Respawning fresh block to complete lesson...');
+                AudioFX.playKey();
+                setTimeout(() => {
+                    if (tutorialMode && !step.isDone()) {
+                        clearWellData();
+                        updateLockedMeshes();
+                        
+                        if (tutorialStepIndex === 0) spawnPiece(LEGENDARIES[0], "NORMAL", { x: 7, y: 7, z: 12 });
+                        else if (tutorialStepIndex === 1) spawnPiece(LEGENDARIES[1], "NORMAL", { x: 7, y: 7, z: 14 });
+                        else if (tutorialStepIndex === 2) spawnPiece(LEGENDARIES[3], "NORMAL", { x: 7, y: 7, z: 14 });
+                        else if (tutorialStepIndex === 3) {
+                            spawnPiece(LEGENDARIES[2], "NORMAL", { x: 6, y: 6, z: 12 });
+                            rotatePiece('x', 1);
+                        }
+                    }
+                }, 400);
+            }
+        }
+
+        // Welcome Modal Handlers
+        function closeWelcomeAndStartTutorial() {
+            AudioFX.init();
+            document.getElementById('welcome-modal').style.display = 'none';
+            startTutorial();
+        }
+
+        function closeWelcomeAndPlay() {
+            AudioFX.init();
+            document.getElementById('welcome-modal').style.display = 'none';
+            resetGame();
+        }
+
+        function triggerGameOver() {
+            isGameOver = true;
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        window.resetGame = function() {
+            clearWellData();
+            updateLockedMeshes();
+            score = 0;
+            level = 1;
+            linesCleared = 0;
+            piecesPlacedInLevel = 0;
+            pauseGravity = false;
+            
+            document.getElementById('score').innerText = score;
+            document.getElementById('level').innerText = level;
+            updateSpeedDisplay();
+            updateDensity();
+            
+            isGameOver = false;
+            document.getElementById('game-over').style.display = 'none';
+            spawnPiece();
+        };
+
+        // --- KEYBOARD HANDLING ---
+        window.addEventListener('keydown', (e) => {
+            AudioFX.init();
+            if (isGameOver || isDemonstratingSolution) return;
+
+            // Auto-minimize tutorial card when player hits game controls so they have clear view!
+            if (tutorialMode && document.getElementById('tutorial-overlay').classList.contains('expanded')) {
+                minimizeTutorial();
+            }
+
+            switch(e.code) {
+                case 'ArrowLeft': case 'KeyA': movePiece(-1, 0, 0); break;
+                case 'ArrowRight': case 'KeyD': movePiece(1, 0, 0); break;
+                case 'ArrowUp': case 'KeyW': movePiece(0, 1, 0); break;
+                case 'ArrowDown': case 'KeyS': movePiece(0, -1, 0); break;
+                
+                // Pitch
+                case 'KeyR': rotatePiece('x', 1); break;
+                case 'KeyF': rotatePiece('x', -1); break;
+                
+                // Yaw
+                case 'KeyQ': rotatePiece('z', 1); break;
+                case 'KeyE': rotatePiece('z', -1); break;
+                
+                // Roll
+                case 'KeyZ': rotatePiece('y', 1); break;
+                case 'KeyX': rotatePiece('y', -1); break;
+
+                case 'Space': 
+                    hardDrop(); 
+                    break;
+            }
+        });
+
+        // --- GAME LOOP ---
+        let lastTime = performance.now();
+        let dropTimer = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const now = performance.now();
+            const dt = now - lastTime;
+            lastTime = now;
+
+            if (!isGameOver && activePiece && !pauseGravity) {
+                dropTimer += dt;
+                const gravityDelay = getGravitySpeed();
+                
+                if (dropTimer > gravityDelay) {
+                    if (!movePiece(0, 0, -1)) {
+                        lockPiece();
+                    }
+                    dropTimer = 0;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Window & Orientation Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initial setup
+        document.getElementById('welcome-modal').style.display = 'block';
+        updateSpeedDisplay();
+        animate();
+    </script>
+</body>
+</html>

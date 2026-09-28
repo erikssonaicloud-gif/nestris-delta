@@ -1,0 +1,2 @@
+# SpaceXAI (xAI API) — OpenAI-compatible client
+openai>=1.60.0
